@@ -4,7 +4,7 @@ import { Form, Button, Alert } from "react-bootstrap";
 
 // import { loginUser } from "../utils/API";
 import Auth from "../utils/auth";
-import { useMutation } from "@apollo/React-Hooks";
+import { useMutation } from "@apollo/client";
 import { ADD_LOGIN } from "../utils/mutations";
 
 const LoginForm = () => {

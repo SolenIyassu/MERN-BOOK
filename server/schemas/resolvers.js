@@ -1,13 +1,12 @@
-const { AuthenticationError } = require("apollo-sever-express");
-const { saveBook } = require("../controllers/user-controller");
+const { AuthenticationError } = require("apollo-server-express");
 const { User, Book } = require("../models");
-const signToken = (require = require("./utils/auth"));
+const signToken = require("../utils/auth");
 
 const resolvers = {
   Query: {
-    me: async (parent, { user, token }, context) => {
+    me: async (parent, args, context) => {
       if (context.user) {
-        return User.findOne({ _id: context._id }).populate("books");
+        return User.findOne({ _id: context._id });
       }
       throw new AuthenticationError("You need to login!");
     },
@@ -24,22 +23,35 @@ const resolvers = {
       if (!user) {
         throw new AuthenticationError("No user found!");
       }
-      const correctPassword = await User.isCorrectPassword(password);
+      const correctPassword = await user.isCorrectPassword(password);
       if (!correctPassword) {
         throw new AuthenticationError("Password is incorrect");
       }
       const token = signToken(user);
       return { token, user };
     },
-    savedBook: (parent, args) => {
-      const books = args.input;
-      const lastBookId = Book[Book.length - 1].id;
-      bookId = lastBookId + 1;
-      Book.push(book);
+    saveBook: async (parent, args, context) => {
+      if (context.user) {
+        const update = await User.findByIdAndUpdate(
+          { _id: context.user._id },
+          { $addToSet: { saveBook: bookId } },
+          { new: true }
+        );
+        return update;
+      }
+      throw new AuthenticationError("please login first!");
     },
     removeBook: async (parent, args, context) => {
       if (context.user) {
-        return Book.findOneAndDelete({ _id: context.user._id });
+        const update = await User.findByIdAndUpdate(
+          { _id: context.user._id },
+          { $pull: { saveBook: { bookId } } },
+          { new: true }
+        );
+        if (!update) {
+          console.log("no user found!");
+        }
+        return update;
       }
       throw new AuthenticationError("You must be logged in!");
     },
